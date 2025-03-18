@@ -24,4 +24,4 @@ jobs:
           
       - name: Run Slither
         run: |
-          slither contracts/**/*.sol 
+          find contracts -name "*.sol" -type f -exec slither {} \; 

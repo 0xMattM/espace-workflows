@@ -24,4 +24,4 @@ jobs:
           
       - name: Run Mythril
         run: |
-          myth analyze contracts/**/*.sol 
+          find contracts -name "*.sol" -type f -exec myth analyze {} \; 
