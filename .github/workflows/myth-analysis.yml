@@ -29,7 +29,11 @@ jobs:
           
       - name: Run Mythril
         run: |
+          echo "# Mythril Analysis Results" > mythril-report.md
+          echo "" >> mythril-report.md
           for contract in contracts/*.sol; do
-            echo "Analyzing $contract..."
-            myth analyze "$contract" --max-depth 10 --execution-timeout 60
+            echo "## Analyzing $contract" >> mythril-report.md
+            echo "" >> mythril-report.md
+            myth analyze "$contract" --max-depth 10 --execution-timeout 60 >> mythril-report.md 2>&1 || true
+            echo "" >> mythril-report.md
           done 

@@ -1,0 +1,58 @@
+name: Security Report
+
+on:
+  workflow_run:
+    workflows: ["Slither Analysis", "Mythril Analysis"]
+    types:
+      - completed
+    branches:
+      - main
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Generate Security Report
+        run: |
+          echo "# Security Analysis Report" > security-report.md
+          echo "Generated on $(date)" >> security-report.md
+          echo "" >> security-report.md
+          
+          echo "## Slither Analysis Results" >> security-report.md
+          echo "" >> security-report.md
+          if [ -f "slither-report.md" ]; then
+            cat slither-report.md >> security-report.md
+          else
+            echo "No Slither report available" >> security-report.md
+          fi
+          
+          echo "" >> security-report.md
+          echo "## Mythril Analysis Results" >> security-report.md
+          echo "" >> security-report.md
+          if [ -f "mythril-report.md" ]; then
+            cat mythril-report.md >> security-report.md
+          else
+            echo "No Mythril report available" >> security-report.md
+          fi
+          
+      - name: Upload Security Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: security-report.md
+          
+      - name: Comment PR with Security Report
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('security-report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            }); 

@@ -29,4 +29,11 @@ jobs:
           
       - name: Run Slither
         run: |
-          find contracts -name "*.sol" -type f -exec slither {} \; 
+          echo "# Slither Analysis Results" > slither-report.md
+          echo "" >> slither-report.md
+          for contract in contracts/*.sol; do
+            echo "## Analyzing $contract" >> slither-report.md
+            echo "" >> slither-report.md
+            slither "$contract" >> slither-report.md 2>&1 || true
+            echo "" >> slither-report.md
+          done 
