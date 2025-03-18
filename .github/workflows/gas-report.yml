@@ -36,7 +36,7 @@ jobs:
           npx hardhat test --gas
           
       - name: Upload Gas Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: gas-report
           path: gas-report.txt
