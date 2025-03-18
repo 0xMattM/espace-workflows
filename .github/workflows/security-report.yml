@@ -11,28 +11,29 @@ jobs:
       
       - name: Download Slither Report
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: slither-report
-          path: .
-          run-id: ${{ github.run_id }}
+          path: ./reports
           
       - name: Download Mythril Report
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: mythril-report
-          path: .
-          run-id: ${{ github.run_id }}
+          path: ./reports
       
       - name: Generate Security Report
         run: |
+          mkdir -p reports
           echo "# Security Analysis Report" > security-report.md
           echo "Generated on $(date)" >> security-report.md
           echo "" >> security-report.md
           
           echo "## Slither Analysis Results" >> security-report.md
           echo "" >> security-report.md
-          if [ -f "slither-report.md" ]; then
-            cat slither-report.md >> security-report.md
+          if [ -d "reports" ] && [ "$(ls -A reports/slither-report* 2>/dev/null)" ]; then
+            cat reports/slither-report* >> security-report.md
           else
             echo "No Slither report available" >> security-report.md
           fi
@@ -40,8 +41,8 @@ jobs:
           echo "" >> security-report.md
           echo "## Mythril Analysis Results" >> security-report.md
           echo "" >> security-report.md
-          if [ -f "mythril-report.md" ]; then
-            cat mythril-report.md >> security-report.md
+          if [ -d "reports" ] && [ "$(ls -A reports/mythril-report* 2>/dev/null)" ]; then
+            cat reports/mythril-report* >> security-report.md
           else
             echo "No Mythril report available" >> security-report.md
           fi
