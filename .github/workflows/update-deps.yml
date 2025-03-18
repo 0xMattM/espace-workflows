@@ -26,5 +26,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add package-lock.json
-          git commit -m "chore: update package-lock.json"
+          git commit -m "chore: actualizar package-lock.json"
           git push 
