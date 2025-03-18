@@ -5,10 +5,14 @@ on:
     branches: [ main ]
     paths:
       - 'contracts/**/*.sol'
+      - 'package.json'
+      - 'package-lock.json'
   pull_request:
     branches: [ main ]
     paths:
       - 'contracts/**/*.sol'
+      - 'package.json'
+      - 'package-lock.json'
 
 jobs:
   gas-report:
