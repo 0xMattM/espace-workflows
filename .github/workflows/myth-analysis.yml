@@ -29,4 +29,7 @@ jobs:
           
       - name: Run Mythril
         run: |
-          find contracts -name "*.sol" -type f -exec myth analyze {} \; 
+          for contract in contracts/*.sol; do
+            echo "Analyzing $contract..."
+            myth analyze "$contract" --max-depth 10 --execution-timeout 60
+          done 
