@@ -2,6 +2,13 @@ name: Security Report
 
 on:
   workflow_dispatch:
+    inputs:
+      slither_run_id:
+        description: 'Run ID del análisis de Slither'
+        required: true
+      mythril_run_id:
+        description: 'Run ID del análisis de Mythril'
+        required: true
 
 jobs:
   generate-report:
@@ -15,6 +22,8 @@ jobs:
         with:
           name: slither-report
           path: ./reports
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.inputs.slither_run_id }}
           
       - name: Download Mythril Report
         uses: actions/download-artifact@v4
@@ -22,6 +31,8 @@ jobs:
         with:
           name: mythril-report
           path: ./reports
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.inputs.mythril_run_id }}
       
       - name: Generate Security Report
         run: |
