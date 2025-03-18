@@ -9,6 +9,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      - name: Download Slither Report
+        uses: actions/download-artifact@v4
+        with:
+          name: slither-report
+          path: .
+          run-id: ${{ github.run_id }}
+          
+      - name: Download Mythril Report
+        uses: actions/download-artifact@v4
+        with:
+          name: mythril-report
+          path: .
+          run-id: ${{ github.run_id }}
+      
       - name: Generate Security Report
         run: |
           echo "# Security Analysis Report" > security-report.md
