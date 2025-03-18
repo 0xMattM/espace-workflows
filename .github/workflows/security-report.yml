@@ -9,18 +9,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Download Slither Report
-        uses: actions/download-artifact@v4
-        with:
-          name: slither-report
-          path: .
-          
-      - name: Download Mythril Report
-        uses: actions/download-artifact@v4
-        with:
-          name: mythril-report
-          path: .
-      
       - name: Generate Security Report
         run: |
           echo "# Security Analysis Report" > security-report.md
