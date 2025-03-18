@@ -1,0 +1,52 @@
+name: Gas Report
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'contracts/**/*.sol'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'contracts/**/*.sol'
+
+jobs:
+  gas-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Generate Gas Report
+        env:
+          REPORT_GAS: true
+          COINMARKETCAP_API_KEY: ${{ secrets.COINMARKETCAP_API_KEY }}
+        run: |
+          npx hardhat test --gas
+          
+      - name: Upload Gas Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: gas-report
+          path: gas-report.txt
+          
+      - name: Comment PR with Gas Report
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('gas-report.txt', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Gas Report\n\`\`\`\n${report}\n\`\`\``
+            }); 

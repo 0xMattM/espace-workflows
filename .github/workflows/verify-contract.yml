@@ -1,0 +1,71 @@
+name: Verify Contract on ConfluxScan
+
+on:
+  workflow_dispatch:
+    inputs:
+      contract_address:
+        description: 'Dirección del contrato a verificar'
+        required: true
+        type: string
+      network:
+        description: 'Red donde está desplegado el contrato'
+        required: true
+        type: choice
+        options:
+          - confluxESpaceTestnet
+          - confluxESpace
+  workflow_run:
+    workflows: ["Deploy to Conflux eSpace Testnet"]
+    types:
+      - completed
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Verify Contract
+        env:
+          CONFLUXSCAN_API_KEY: ${{ secrets.CONFLUXSCAN_API_KEY }}
+          CONTRACT_ADDRESS: ${{ github.event.inputs.contract_address || github.event.workflow_run.outputs.contractAddress }}
+          NETWORK: ${{ github.event.inputs.network || 'confluxESpaceTestnet' }}
+        run: |
+          echo "Verificando contrato $CONTRACT_ADDRESS en $NETWORK..."
+          npx hardhat verify --network $NETWORK $CONTRACT_ADDRESS
+          
+      - name: Check Verification Status
+        env:
+          CONFLUXSCAN_API_KEY: ${{ secrets.CONFLUXSCAN_API_KEY }}
+          CONTRACT_ADDRESS: ${{ github.event.inputs.contract_address || github.event.workflow_run.outputs.contractAddress }}
+          NETWORK: ${{ github.event.inputs.network || 'confluxESpaceTestnet' }}
+        run: |
+          # Esperar unos segundos para que la verificación se procese
+          sleep 10
+          
+          # Obtener el estado de verificación
+          if [ "$NETWORK" = "confluxESpaceTestnet" ]; then
+            API_URL="https://evmapi-testnet.confluxscan.io/api"
+          else
+            API_URL="https://evmapi.confluxscan.net/api"
+          fi
+          
+          response=$(curl -s -H "Authorization: Bearer $CONFLUXSCAN_API_KEY" \
+            "$API_URL/contract/$CONTRACT_ADDRESS")
+          
+          if echo "$response" | grep -q "verified"; then
+            echo "✅ Contrato verificado exitosamente"
+          else
+            echo "❌ Error: El contrato no pudo ser verificado"
+            exit 1
+          fi 

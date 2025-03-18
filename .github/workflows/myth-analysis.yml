@@ -1,0 +1,32 @@
+name: Mythril Analysis
+
+on:
+  push:
+    paths:
+      - 'contracts/**/*.sol'
+  pull_request:
+    paths:
+      - 'contracts/**/*.sol'
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Install Mythril
+        run: |
+          python -m pip install --upgrade pip
+          pip install mythril
+          
+      - name: Run Mythril Analysis
+        run: |
+          for contract in contracts/**/*.sol; do
+            echo "Analyzing $contract..."
+            myth analyze "$contract" --max-depth 10 --execution-timeout 60
+          done 

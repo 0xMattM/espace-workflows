@@ -1,0 +1,37 @@
+name: Deploy to Conflux eSpace Testnet
+
+on:
+  workflow_run:
+    workflows: ["Mythril Analysis"]
+    types:
+      - completed
+    branches:
+      - main
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Deploy to Conflux eSpace Testnet
+        env:
+          DEPLOYER_MNEMONIC: ${{ secrets.DEPLOYER_MNEMONIC }}
+        run: |
+          npx hardhat run scripts/deploy.ts --network confluxESpaceTestnet
+          
+      - name: Verify Contract
+        env:
+          DEPLOYER_MNEMONIC: ${{ secrets.DEPLOYER_MNEMONIC }}
+          CONFLUXSCAN_API_KEY: ${{ secrets.CONFLUXSCAN_API_KEY }}
+        run: |
+          npx hardhat verify --network confluxESpaceTestnet ${{ steps.deploy.outputs.contractAddress }} 
