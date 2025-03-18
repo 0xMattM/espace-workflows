@@ -1,48 +1,38 @@
-name: Verify Contract on ConfluxScan
+name: Verify Contract
 
 on:
-  workflow_dispatch:
-    inputs:
-      contract_address:
-        description: 'Dirección del contrato a verificar'
-        required: true
-        type: string
-      network:
-        description: 'Red donde está desplegado el contrato'
-        required: true
-        type: choice
-        options:
-          - confluxESpaceTestnet
-          - confluxESpace
-  workflow_run:
-    workflows: ["Deploy to Conflux eSpace Testnet"]
-    types:
-      - completed
-    branches:
-      - main
+  push:
+    branches: [ main ]
+    paths:
+      - 'contracts/**/*.sol'
+      - 'package.json'
+      - 'package-lock.json'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'contracts/**/*.sol'
+      - 'package.json'
+      - 'package-lock.json'
 
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
           
       - name: Install dependencies
         run: npm ci
         
-      - name: Verify Contract
+      - name: Verify contract
         env:
-          CONFLUXSCAN_API_KEY: ${{ secrets.CONFLUXSCAN_API_KEY }}
-          CONTRACT_ADDRESS: ${{ github.event.inputs.contract_address || github.event.workflow_run.outputs.contractAddress }}
-          NETWORK: ${{ github.event.inputs.network || 'confluxESpaceTestnet' }}
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
         run: |
-          echo "Verificando contrato $CONTRACT_ADDRESS en $NETWORK..."
-          npx hardhat verify --network $NETWORK $CONTRACT_ADDRESS
+          npx hardhat verify --network goerli ${{ github.event.head_commit.id }}
           
       - name: Check Verification Status
         env:
