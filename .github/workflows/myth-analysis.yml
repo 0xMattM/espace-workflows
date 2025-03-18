@@ -5,6 +5,7 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   mythril:
@@ -36,4 +37,15 @@ jobs:
             echo "" >> mythril-report.md
             myth analyze "$contract" --max-depth 10 --execution-timeout 60 >> mythril-report.md 2>&1 || true
             echo "" >> mythril-report.md
-          done 
+          done
+          
+      - name: Upload Mythril Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: mythril-report
+          path: mythril-report.md
+          
+      - name: Display Report
+        run: |
+          echo "Mythril Analysis Results:"
+          cat mythril-report.md 
