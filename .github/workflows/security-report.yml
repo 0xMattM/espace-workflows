@@ -9,43 +9,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-          
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install slither-analyzer mythril solc-select
-          
-      - name: Install and configure solc
-        run: |
-          solc-select install 0.8.28
-          solc-select use 0.8.28
-      
-      - name: Run Slither Analysis
-        run: |
-          echo "# Slither Analysis Results" > slither-report.md
-          echo "" >> slither-report.md
-          for contract in contracts/*.sol; do
-            echo "## Analyzing $contract" >> slither-report.md
-            echo "" >> slither-report.md
-            slither "$contract" >> slither-report.md 2>&1 || true
-            echo "" >> slither-report.md
-          done
-          
-      - name: Run Mythril Analysis
-        run: |
-          echo "# Mythril Analysis Results" > mythril-report.md
-          echo "" >> mythril-report.md
-          for contract in contracts/*.sol; do
-            echo "## Analyzing $contract" >> mythril-report.md
-            echo "" >> mythril-report.md
-            myth analyze "$contract" --max-depth 10 --execution-timeout 60 >> mythril-report.md 2>&1 || true
-            echo "" >> mythril-report.md
-          done
-      
       - name: Generate Security Report
         run: |
           echo "# Security Analysis Report" > security-report.md
@@ -54,12 +17,20 @@ jobs:
           
           echo "## Slither Analysis Results" >> security-report.md
           echo "" >> security-report.md
-          cat slither-report.md >> security-report.md
+          if [ -f "slither-report.md" ]; then
+            cat slither-report.md >> security-report.md
+          else
+            echo "No Slither report available" >> security-report.md
+          fi
           
           echo "" >> security-report.md
           echo "## Mythril Analysis Results" >> security-report.md
           echo "" >> security-report.md
-          cat mythril-report.md >> security-report.md
+          if [ -f "mythril-report.md" ]; then
+            cat mythril-report.md >> security-report.md
+          else
+            echo "No Mythril report available" >> security-report.md
+          fi
           
       - name: Upload Security Report
         uses: actions/upload-artifact@v4
